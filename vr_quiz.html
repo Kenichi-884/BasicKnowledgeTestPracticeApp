@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>社内研修クイズ</title>
+<style>
+  :root {
+    /* dark = default/base per v2 addendum */
+    --bg: #0B0D12;
+    --card: #161A23;
+    --text: #E7EBF3;
+    --subtext: #8B96A8;
+    --border: #232837;
+    --accent: #5B8DEF;
+    --accent-hover: #7BA3F5;
+    --progress-bg: #232837;
+
+    --choice-bg: #161A23;
+    --choice-border: #2E3446;
+    --choice-hover-bg: #1D2230;
+
+    --correct-bg: #12291F;
+    --correct-border: #34D399;
+    --correct-text: #6EE7B7;
+
+    --incorrect-bg: #2E1618;
+    --incorrect-border: #F87171;
+    --incorrect-text: #FCA5A5;
+
+    --ambiguous-border: #F2B84B;
+    --ambiguous-text: #F2B84B;
+
+    --warn-text: #FCA5A5;
+    --warn-bg: #2E1618;
+
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+  }
+
+  :root[data-theme="light"] {
+    --bg: #F5F7FA;
+    --card: #FFFFFF;
+    --text: #1A1F2B;
+    --subtext: #5A6478;
+    --border: #E4E8F0;
+    --accent: #2563EB;
+    --accent-hover: #1D4ED8;
+    --progress-bg: #E2E8F0;
+
+    --choice-bg: #FFFFFF;
+    --choice-border: #D8DEE9;
+    --choice-hover-bg: #EEF2F8;
+
+    --correct-bg: #EAFBF3;
+    --correct-border: #16A34A;
+    --correct-text: #15803D;
+
+    --incorrect-bg: #FDECEC;
+    --incorrect-border: #DC2626;
+    --incorrect-text: #B91C1C;
+
+    --ambiguous-border: #B45309;
+    --ambiguous-text: #B45309;
+
+    --warn-text: #DC2626;
+    --warn-bg: #FEE2E2;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    line-height: 1.6;
+  }
+
+  body {
+    min-height: 100vh;
+  }
+
+  #app {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 16px;
+    padding-top: 56px;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+    margin: 0 0 8px;
+  }
+
+  h2 {
+    font-size: 1.15rem;
+    margin: 0 0 12px;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  .subtext {
+    color: var(--subtext);
+  }
+
+  button {
+    font-family: inherit;
+    font-size: 1rem;
+    cursor: pointer;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    min-height: 44px;
+    padding: 10px 18px;
+  }
+
+  button:focus-visible,
+  input:focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #FFFFFF;
+    border: none;
+    font-weight: 700;
+    width: 100%;
+  }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+    font-weight: 700;
+    width: 100%;
+  }
+  .btn-secondary:hover { background: var(--choice-hover-bg); }
+
+  .link-btn {
+    background: transparent;
+    border: none;
+    color: var(--accent);
+    font-weight: 700;
+    padding: 6px 0;
+    min-height: auto;
+  }
+  .link-btn:hover { color: var(--accent-hover); text-decoration: underline; }
+
+  label {
+    display: block;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  input[type="text"] {
+    width: 100%;
+    font-size: 1rem;
+    padding: 10px 12px;
+    min-height: 44px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+  }
+
+  input[type="text"].error {
+    border-color: var(--incorrect-border);
+    border-width: 2px;
+  }
+
+  .error-message {
+    color: var(--incorrect-text);
+    font-size: 0.9rem;
+    margin-top: 6px;
+    font-weight: 700;
+  }
+
+  .rule-list {
+    list-style: none;
+    padding: 0;
+    margin: 16px 0;
+  }
+  .rule-list li {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .rule-list li:last-child { border-bottom: none; }
+  .rule-icon { font-size: 1.2rem; flex-shrink: 0; }
+
+  /* Theme toggle */
+  .theme-toggle {
+    position: fixed;
+    top: 10px;
+    right: 12px;
+    z-index: 10;
+    min-height: 44px;
+    min-width: 44px;
+    padding: 6px 10px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 8px;
+    font-size: 1.1rem;
+    line-height: 1;
+  }
+  .theme-toggle:hover { background: var(--choice-hover-bg); }
+
+  /* Header / quiz screen */
+  .quiz-header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .quiz-header.review-mode {
+    border-bottom: 3px solid var(--accent);
+    padding-bottom: 10px;
+  }
+  .quiz-header .name {
+    font-weight: 700;
+  }
+  .review-label {
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .live-rate {
+    font-size: 0.95rem;
+    color: var(--subtext);
+  }
+  .live-rate span {
+    color: var(--accent);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .timer {
+    font-variant-numeric: tabular-nums;
+    font-size: 1.1rem;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 8px;
+    background: var(--progress-bg);
+    color: var(--text);
+  }
+  .timer.warn {
+    color: var(--warn-text);
+    background: var(--warn-bg);
+  }
+
+  .progress-track {
+    width: 100%;
+    height: 10px;
+    background: var(--progress-bg);
+    border-radius: 5px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    transition: width 0.3s ease;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .progress-fill { transition: none; }
+  }
+
+  .question-number {
+    color: var(--subtext);
+    font-weight: 700;
+    font-size: 1rem;
+    margin: 0 0 8px;
+  }
+
+  .question-text {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 0 0 16px;
+  }
+
+  /* Choice list (4-choice) */
+  .choice-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .choice-btn {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    width: 100%;
+    text-align: left;
+    background: var(--choice-bg);
+    border: 1px solid var(--choice-border);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+  .choice-btn:hover:not(:disabled),
+  .choice-btn:focus-visible:not(:disabled) {
+    background: var(--choice-hover-bg);
+  }
+  .choice-label {
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .choice-btn.correct {
+    background: var(--correct-bg);
+    border-color: var(--correct-border);
+    color: var(--correct-text);
+  }
+  .choice-btn.wrong-selected {
+    background: var(--incorrect-bg);
+    border-color: var(--incorrect-border);
+    color: var(--incorrect-text);
+  }
+  .choice-btn.dim {
+    opacity: 0.55;
+  }
+  .choice-btn:disabled {
+    cursor: not-allowed;
+  }
+
+  .ambiguous-btn {
+    width: 100%;
+    background: transparent;
+    border: 2px solid var(--ambiguous-border);
+    color: var(--ambiguous-text);
+    font-weight: 700;
+    margin-top: 18px;
+  }
+  .ambiguous-btn:hover:not(:disabled) { background: var(--choice-hover-bg); }
+  .ambiguous-btn:disabled { opacity: 0.75; cursor: not-allowed; }
+
+  .feedback-msg {
+    text-align: center;
+    color: var(--subtext);
+    margin: 14px 0 10px;
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* Result screen */
+  .result-summary {
+    text-align: center;
+  }
+  .result-score {
+    font-size: 2.4rem;
+    font-weight: 800;
+    color: var(--accent);
+    margin: 8px 0;
+  }
+  .result-rate {
+    font-size: 1.1rem;
+    color: var(--subtext);
+    margin-bottom: 8px;
+  }
+
+  table.result-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+  table.result-table th,
+  table.result-table td {
+    border: 1px solid var(--border);
+    padding: 8px 10px;
+    text-align: left;
+    vertical-align: top;
+  }
+  table.result-table th {
+    background: var(--bg);
+  }
+  .col-no { width: 3em; text-align: center; }
+  .col-result { width: 8em; text-align: center; white-space: nowrap; }
+
+  .next-time {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    margin: 16px 0;
+    font-weight: 700;
+  }
+
+  .print-btn,
+  .review-cta-btn {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    font-weight: 700;
+    width: 100%;
+    margin-bottom: 10px;
+  }
+  .print-btn:hover,
+  .review-cta-btn:hover { background: var(--accent-hover); }
+
+  .congrats-msg {
+    background: var(--correct-bg);
+    border: 1px solid var(--correct-border);
+    color: var(--correct-text);
+    border-radius: 8px;
+    padding: 14px;
+    margin-bottom: 10px;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  /* Review screen */
+  .review-item {
+    margin-bottom: 14px;
+  }
+  .review-item h3 {
+    font-size: 1.05rem;
+    margin: 0 0 8px;
+  }
+  .review-item .review-status {
+    font-weight: 700;
+  }
+  .review-item .review-line {
+    margin: 6px 0;
+  }
+  .review-item .review-line .label {
+    color: var(--subtext);
+    font-weight: 700;
+    margin-right: 6px;
+  }
+  .review-item .correct-inline {
+    color: var(--correct-text);
+  }
+  .review-item .wrong-inline {
+    color: var(--incorrect-text);
+  }
+
+  @media (max-width: 420px) {
+    .quiz-header { align-items: flex-start; }
+  }
+
+  @media print {
+    body { background: #fff; color: #000; }
+    .card { border: 1px solid #000; background: #fff; }
+    .no-print { display: none !important; }
+    .result-score { color: #000; }
+    .timer, .progress-track, .next-time { background: none; border: 1px solid #000; }
+    table.result-table th { background: none; }
+  }
+</style>
+</head>
+<body>
+<button type="button" id="theme-toggle" class="theme-toggle no-print" aria-label="表示テーマを切り替え">🌙</button>
+<div id="app"></div>
+<div id="live-region" class="visually-hidden" aria-live="polite"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---------------------------------------------------------------
+  // quizData: 運営者(研修担当)が問題を追加・編集する唯一の場所。
+  // 各問題は choices を必ず4件、correctIndex(0〜3)で choices 内の
+  // 「正解の位置」を指す。choices の並び順を変えた場合は必ず
+  // correctIndex も合わせて修正すること。
+  // ---------------------------------------------------------------
+  const quizData = [
+    {
+      question: "「メタクエスト3」は何年何月に発売された？",
+      choices: ["2023年10月", "2022年10月", "2020年10月", "2024年10月"],
+      correctIndex: 0,
+      ambiguousScore: 0.5
+    },
+    {
+      question: "メタクエスト3（512GB）の価格はいくら？",
+      choices: ["96,800円", "74,800円", "62,700円", "105,600円"],
+      correctIndex: 0,
+      ambiguousScore: 0.5
+    },
+    {
+      question: "メタクエスト3の最大の特徴は何？",
+      choices: [
+        "「MR（複合現実）」が体験できる",
+        "4Kを超える高解像度ディスプレイを搭載していることが最大の特徴",
+        "コントローラー不要の完全ハンドトラッキングに対応していることが最大の特徴",
+        "従来機より大幅に軽量化され、長時間装着の快適性が向上したことが最大の特徴"
+      ],
+      correctIndex: 0,
+      ambiguousScore: 0.5
+    },
+    {
+      question: "Oculusは何億円（何ドル）で買収されましたか？",
+      choices: ["約20億ドル", "約10億ドル", "約30億ドル", "約5億ドル"],
+      correctIndex: 0,
+      ambiguousScore: 0.5
+    },
+    {
+      question: "Oculusの買収によって「VR元年」と言われるのは何年頃？",
+      choices: ["2016年", "2014年", "2018年", "2020年"],
+      correctIndex: 0,
+      ambiguousScore: 0.5
+    },
+    {
+      question: "Atariとは何の会社ですか？",
+      choices: [
+        "ビデオゲーム・アーケードゲーム企業。アーケードゲーム『ポン（Pong）』や家庭用ゲーム機『Atari 2600』を販売",
+        "アメリカの半導体・パソコン専業メーカーで、ゲーム機事業は行っていない企業",
+        "日本発祥の玩具・カードゲームメーカーで、代表作は『UNO』などのカードゲーム",
+        "家庭用ゲーム機『Atari 2600』のみを手掛け、アーケードゲーム事業には参入していない企業"
+      ],
+      correctIndex: 0,
+      ambiguousScore: 0.5
+    },
+    {
+      question: "TAITO（タイトー）の親会社は？",
+      choices: [
+        "株式会社スクウェア・エニックス・ホールディングス",
+        "株式会社セガサミーホールディングス",
+        "株式会社バンダイナムコホールディングス",
+        "コナミグループ株式会社"
+      ],
+      correctIndex: 0,
+      ambiguousScore: 0.5
+    },
+    {
+      question: "アドアーズの親会社は？",
+      choices: [
+        "株式会社ワイドレジャー",
+        "株式会社セガサミーホールディングス",
+        "株式会社GENDA",
+        "株式会社バンダイナムコアミューズメント"
+      ],
+      correctIndex: 0,
+      ambiguousScore: 0.5
+    },
+    {
+      question: "ナンジャタウンの運営会社は？",
+      choices: [
+        "株式会社バンダイナムコアミューズメント",
+        "株式会社バンダイナムコエンターテインメント",
+        "サンシャインシティ株式会社",
+        "株式会社サンリオエンターテイメント"
+      ],
+      correctIndex: 0,
+      ambiguousScore: 0.5
+    },
+    {
+      question: "リナワールドの運営会社は？",
+      choices: [
+        "株式会社ヤマコー",
+        "株式会社ヤマコーポレーション",
+        "株式会社オリエンタルランド",
+        "株式会社としまえん"
+      ],
+      correctIndex: 0,
+      ambiguousScore: 0.5
+    },
+    {
+      question: "戦場の絆の値段は？",
+      choices: [
+        "基本料金は1プレイ（2戦）500円（コースにより300〜1,000円）",
+        "1プレイ（2戦）300円均一",
+        "1プレイ（2戦）700円均一",
+        "1プレイ1,000円均一（コース料金差はなし）"
+      ],
+      correctIndex: 0,
+      ambiguousScore: 0.5
+    },
+    {
+      question: "戦場の絆の特徴は？",
+      choices: [
+        "着座型の巨大なモニターでプレイ可能",
+        "VRゴーグルを装着してプレイする筐体である",
+        "立ったまま操縦桿を握ってプレイする筐体である",
+        "複数人が一つの筐体に同乗して協力プレイする筐体である"
+      ],
+      correctIndex: 0,
+      ambiguousScore: 0.5
+    },
+    {
+      question: "コヤさんが作ったアーケードゲームでヒットしたものを2つ答えてください",
+      choices: [
+        "アイドルマスター／釣りスピリッツ",
+        "太鼓の達人／湾岸ミッドナイト",
+        "三国志大戦／アイドルマスター シンデレラガールズ",
+        "機動戦士ガンダム 戦場の絆／マリオカート アーケードグランプリ"
+      ],
+      correctIndex: 0,
+      ambiguousScore: 0.5
+    },
+    {
+      question: "ティフォニウムのローンチ済みの最新作は？",
+      choices: ["フローリア（FLORIA）", "アルカディア（ARCADIA）", "ノヴァリア（NOVARIA）", "ゼノビア（XENOVIA）"],
+      correctIndex: 0,
+      ambiguousScore: 0.5
+    },
+    {
+      question: "ティフォニウム新宿店が入っている施設の名前は？",
+      choices: ["京王プラザホテル", "新宿住友ビル", "小田急百貨店新宿店", "新宿マルイ本館"],
+      correctIndex: 0,
+      ambiguousScore: 0.5
+    },
+    {
+      question: "ティフォニウムお台場の坪数、フリーロームと着座の部屋数は？",
+      choices: [
+        "約130坪ほど。フリーローム3部屋、着座3部屋",
+        "約100坪ほど。フリーローム2部屋、着座2部屋",
+        "約150坪ほど。フリーローム4部屋、着座2部屋",
+        "約200坪ほど。フリーローム3部屋、着座4部屋"
+      ],
+      correctIndex: 0,
+      ambiguousScore: 0.5
+    },
+    {
+      question: "ティフォンが作った大阪の施設の特徴は？",
+      choices: [
+        "MIRRORGE OSAKA（ミラージュ大阪）｜AppleVisionを装着しゲームを体験しながら施設周りを回れる",
+        "TIPHON OSAKA｜Meta Questを装着してゲームを体験しながら施設周りを回れる",
+        "MIRAGE OSAKA（ミラージュ大阪）｜スマートフォンのARアプリを使って施設周りを回れる",
+        "MIRRORGE OSAKA（ミラージュ大阪）｜専用コントローラーのみを使用し、ゴーグルは装着せずに体験する"
+      ],
+      correctIndex: 0,
+      ambiguousScore: 0.5
+    }
+  ];
+
+  const TOTAL_TIME = 480; // 8 minutes
+  const TOTAL_QUESTIONS = quizData.length;
+  const CHOICE_LABELS = ["A", "B", "C", "D"];
+  const FEEDBACK_WAIT_MS = 1300;
+
+  const state = {
+    screen: "start", // start | quiz | feedback | result | review | reviewQuiz | reviewFeedback | reviewResult
+    name: "",
+    index: 0,
+    timeRemaining: TOTAL_TIME,
+    timerId: null,
+    feedbackTimeoutId: null,
+    quizStartDate: null,
+    timedOut: false,
+    sessionQuestions: null, // shuffled per-session choice order
+    records: [],
+    reviewQueue: null,
+    reviewIndex: 0,
+    reviewRecords: []
+  };
+
+  const app = document.getElementById("app");
+  const liveRegion = document.getElementById("live-region");
+
+  function announce(text) {
+    liveRegion.textContent = text;
+  }
+
+  function pad2(n) {
+    return String(n).padStart(2, "0");
+  }
+
+  function formatTime(seconds) {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return pad2(m) + ":" + pad2(s);
+  }
+
+  function formatDate(d) {
+    return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
+  }
+
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function truncate(str, max) {
+    if (str.length > max) {
+      return str.slice(0, max) + "…";
+    }
+    return str;
+  }
+
+  /* ---------- Theme ---------- */
+
+  function initTheme() {
+    let saved = null;
+    try { saved = localStorage.getItem("quizTheme"); } catch (e) { saved = null; }
+    const theme = saved === "light" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", theme);
+    updateThemeToggleIcon();
+  }
+
+  function updateThemeToggleIcon() {
+    const btn = document.getElementById("theme-toggle");
+    if (!btn) return;
+    const theme = document.documentElement.getAttribute("data-theme");
+    btn.textContent = theme === "light" ? "☀" : "🌙";
+  }
+
+  function toggleTheme() {
+    const current = document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark";
+    const next = current === "light" ? "dark" : "light";
+    document.documentElement.setAttribute("data-theme", next);
+    try { localStorage.setItem("quizTheme", next); } catch (e) { /* ignore */ }
+    updateThemeToggleIcon();
+  }
+
+  /* ---------- Audio (Web Audio API synthesis, no external files) ---------- */
+
+  let audioCtx = null;
+
+  function ensureAudioContext() {
+    if (!audioCtx) {
+      try {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        if (Ctx) audioCtx = new Ctx();
+      } catch (e) {
+        audioCtx = null;
+      }
+    }
+    if (audioCtx && audioCtx.state === "suspended") {
+      audioCtx.resume().catch(function () { /* ignore */ });
+    }
+  }
+
+  function beep(opts) {
+    if (!audioCtx) return;
+    const now = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = opts.type;
+    osc.frequency.setValueAtTime(opts.freqStart, now);
+    if (opts.freqEnd && opts.freqEnd !== opts.freqStart) {
+      osc.frequency.exponentialRampToValueAtTime(Math.max(opts.freqEnd, 1), now + opts.duration / 1000);
+    }
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(opts.peakGain, now + 0.008);
+    gain.gain.linearRampToValueAtTime(0.0001, now + opts.duration / 1000);
+    osc.connect(gain).connect(audioCtx.destination);
+    osc.start(now);
+    osc.stop(now + opts.duration / 1000 + 0.03);
+  }
+
+  function playCorrectSound() {
+    beep({ freqStart: 660, freqEnd: 990, duration: 180, type: "sine", peakGain: 0.2 });
+  }
+  function playIncorrectSound() {
+    beep({ freqStart: 180, freqEnd: 150, duration: 300, type: "square", peakGain: 0.18 });
+  }
+  function playAmbiguousSound() {
+    beep({ freqStart: 440, freqEnd: 440, duration: 120, type: "sine", peakGain: 0.15 });
+  }
+
+  /* ---------- Session setup ---------- */
+
+  function shuffleChoices(q) {
+    const idxs = [0, 1, 2, 3];
+    for (let i = idxs.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const tmp = idxs[i]; idxs[i] = idxs[j]; idxs[j] = tmp;
+    }
+    const choices = idxs.map(function (origIdx) { return q.choices[origIdx]; });
+    const correctIndex = idxs.indexOf(q.correctIndex);
+    return { question: q.question, choices: choices, correctIndex: correctIndex, ambiguousScore: q.ambiguousScore };
+  }
+
+  function buildSessionQuestions() {
+    return quizData.map(shuffleChoices);
+  }
+
+  function buildRecords(sessionQuestions) {
+    return sessionQuestions.map(function (sq, i) {
+      return {
+        index: i,
+        question: sq.question,
+        choices: sq.choices,
+        correctIndex: sq.correctIndex,
+        selectedIndex: null,
+        mode: null, // "auto" | "ambiguous" | "timeout"
+        score: null,
+        answered: false
+      };
+    });
+  }
+
+  /* ---------- Timer ---------- */
+
+  function startTimer() {
+    if (state.timerId !== null) return;
+    state.timerId = setInterval(function () {
+      state.timeRemaining--;
+      if (state.timeRemaining <= 0) {
+        state.timeRemaining = 0;
+        clearInterval(state.timerId);
+        state.timerId = null;
+        forceEndQuiz();
+        return;
+      }
+      updateTimerUI();
+    }, 1000);
+  }
+
+  function stopTimer() {
+    if (state.timerId !== null) {
+      clearInterval(state.timerId);
+      state.timerId = null;
+    }
+  }
+
+  function updateTimerUI() {
+    const timerEl = document.getElementById("timer-display");
+    if (!timerEl) return;
+    timerEl.textContent = "⏱ " + formatTime(state.timeRemaining);
+    const wasWarn = timerEl.classList.contains("warn");
+    if (state.timeRemaining <= 59) {
+      timerEl.classList.add("warn");
+      if (!wasWarn) {
+        announce("残り時間が1分を切りました。");
+      }
+    }
+  }
+
+  function forceEndQuiz() {
+    if (state.feedbackTimeoutId) {
+      clearTimeout(state.feedbackTimeoutId);
+      state.feedbackTimeoutId = null;
+    }
+    state.records.forEach(function (r) {
+      if (!r.answered) {
+        r.mode = "timeout";
+        r.score = 0;
+      }
+    });
+    state.timedOut = true;
+    state.screen = "result";
+    render();
+  }
+
+  /* ---------- Main quiz actions ---------- */
+
+  function handleStart() {
+    const input = document.getElementById("name-input");
+    const errorEl = document.getElementById("name-error");
+    const value = input.value.trim();
+    ensureAudioContext();
+    if (!value) {
+      input.classList.add("error");
+      input.setAttribute("aria-invalid", "true");
+      errorEl.textContent = "受験者名を入力してください。";
+      input.focus();
+      return;
+    }
+    state.name = value;
+    state.quizStartDate = new Date();
+    state.sessionQuestions = buildSessionQuestions();
+    state.records = buildRecords(state.sessionQuestions);
+    state.screen = "quiz";
+    state.index = 0;
+    state.timeRemaining = TOTAL_TIME;
+    state.timedOut = false;
+    startTimer();
+    render();
+  }
+
+  function currentLiveRate() {
+    let answeredCount = 0;
+    let sum = 0;
+    state.records.forEach(function (r) {
+      if (r.answered) {
+        answeredCount++;
+        sum += r.score;
+      }
+    });
+    if (answeredCount === 0) return "ー%";
+    return Math.round((sum / answeredCount) * 100) + "%";
+  }
+
+  function handleChoice(idx) {
+    if (state.screen !== "quiz") return;
+    ensureAudioContext();
+    const sq = state.sessionQuestions[state.index];
+    const rec = state.records[state.index];
+    const isCorrect = idx === sq.correctIndex;
+    rec.selectedIndex = idx;
+    rec.mode = "auto";
+    rec.score = isCorrect ? 1 : 0;
+    rec.answered = true;
+    if (isCorrect) {
+      playCorrectSound();
+      announce("正解");
+    } else {
+      playIncorrectSound();
+      announce("不正解");
+    }
+    state.screen = "feedback";
+    render();
+    state.feedbackTimeoutId = setTimeout(advanceAfterFeedback, FEEDBACK_WAIT_MS);
+  }
+
+  function handleAmbiguous() {
+    if (state.screen !== "quiz") return;
+    ensureAudioContext();
+    const sq = state.sessionQuestions[state.index];
+    const rec = state.records[state.index];
+    rec.selectedIndex = null;
+    rec.mode = "ambiguous";
+    rec.score = sq.ambiguousScore;
+    rec.answered = true;
+    playAmbiguousSound();
+    announce("一部正解として0.5点を記録しました");
+    state.screen = "feedback";
+    render();
+    state.feedbackTimeoutId = setTimeout(advanceAfterFeedback, FEEDBACK_WAIT_MS);
+  }
+
+  function advanceAfterFeedback() {
+    if (state.feedbackTimeoutId) {
+      clearTimeout(state.feedbackTimeoutId);
+      state.feedbackTimeoutId = null;
+    }
+    if (state.screen !== "feedback") return; // timer may have already forced a transition
+    if (state.index + 1 < TOTAL_QUESTIONS) {
+      state.index += 1;
+      state.screen = "quiz";
+      render();
+    } else {
+      stopTimer();
+      state.screen = "result";
+      render();
+    }
+  }
+
+  function handlePrint() {
+    window.print();
+  }
+
+  /* ---------- Shared choice-list rendering ---------- */
+
+  function choiceListHtml(sq, rec) {
+    const answered = !!(rec && rec.answered);
+    let html = "";
+    sq.choices.forEach(function (choiceText, idx) {
+      let cls = "choice-btn";
+      let icon = "";
+      if (answered) {
+        if (rec.mode === "auto") {
+          if (idx === sq.correctIndex) {
+            cls += " correct";
+            icon = "✓ ";
+          } else if (idx === rec.selectedIndex) {
+            cls += " wrong-selected";
+            icon = "✗ ";
+          } else {
+            cls += " dim";
+          }
+        } else if (rec.mode === "ambiguous") {
+          cls += " dim";
+        }
+      }
+      html += '<button type="button" class="' + cls + '" data-idx="' + idx + '"' + (answered ? " disabled" : "") + '>' +
+        '<span class="choice-label">' + icon + CHOICE_LABELS[idx] + '</span><span>' + escapeHtml(choiceText) + '</span>' +
+        '</button>';
+    });
+    return html;
+  }
+
+  function ambiguousButtonHtml(rec) {
+    if (rec && rec.answered) {
+      if (rec.mode === "ambiguous") {
+        return '<button type="button" class="ambiguous-btn" disabled>△ 曖昧・一部正解として 0.5点 を記録しました</button>';
+      }
+      return '<button type="button" class="ambiguous-btn" disabled>△ 曖昧・一部正解（口頭で近い内容を回答）</button>';
+    }
+    return '<button type="button" class="ambiguous-btn" id="ambiguous-btn">△ 曖昧・一部正解（口頭で近い内容を回答）</button>';
+  }
+
+  /* ---------- Render: Start screen ---------- */
+
+  function renderStart() {
+    app.innerHTML =
+      '<div class="card">' +
+        '<h1>研修クイズ</h1>' +
+        '<p class="subtext">受験を始める前に、下記の内容をご確認ください。</p>' +
+        '<div>' +
+          '<label for="name-input">受験者名（必須）</label>' +
+          '<input type="text" id="name-input" name="name" autocomplete="off">' +
+          '<div id="name-error" class="error-message" role="alert"></div>' +
+        '</div>' +
+        '<h2 style="margin-top:24px;">ルール説明</h2>' +
+        '<ul class="rule-list">' +
+          '<li><span class="rule-icon" aria-hidden="true">⏱</span><span>制限時間は8分間です。開始と同時に全体で1つのタイマーがカウントダウンします。</span></li>' +
+          '<li><span class="rule-icon" aria-hidden="true">❓</span><span>各問題は4択形式です。選択肢をクリックすると自動採点され、正解=1点・不正解=0点として即座に記録されます。</span></li>' +
+          '<li><span class="rule-icon" aria-hidden="true">💡</span><span>口頭回答が曖昧・部分的に正しい場合は「△ 曖昧・一部正解」ボタンを押すと0.5点が記録されます。</span></li>' +
+          '<li><span class="rule-icon" aria-hidden="true">📊</span><span>正解数（スコア）は記録され、人事評価の対象になります。</span></li>' +
+        '</ul>' +
+        '<button type="button" class="btn-primary" id="start-btn">はじめる</button>' +
+      '</div>';
+
+    document.getElementById("start-btn").addEventListener("click", handleStart);
+    const input = document.getElementById("name-input");
+    input.addEventListener("input", function () {
+      input.classList.remove("error");
+      input.removeAttribute("aria-invalid");
+      document.getElementById("name-error").textContent = "";
+    });
+    input.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        handleStart();
+      }
+    });
+  }
+
+  /* ---------- Render: Quiz / Feedback screen (main session) ---------- */
+
+  function renderQuizMain() {
+    const total = TOTAL_QUESTIONS;
+    const sq = state.sessionQuestions[state.index];
+    const rec = state.records[state.index];
+    const questionNum = state.index + 1;
+    const answeredSoFar = state.records.filter(function (r) { return r.answered; }).length;
+    const progressPct = Math.round((answeredSoFar / total) * 100);
+    const isWarn = state.timeRemaining <= 59;
+
+    let html = "";
+    html += '<div class="quiz-header">';
+    html += '<div class="name">受験者: ' + escapeHtml(state.name) + '</div>';
+    html += '<div class="live-rate">正答率(現在) <span>' + currentLiveRate() + '</span></div>';
+    html += '<div id="timer-display" class="timer' + (isWarn ? ' warn' : '') + '">⏱ ' + formatTime(state.timeRemaining) + '</div>';
+    html += '</div>';
+
+    html += '<h2 class="question-number">問題 ' + questionNum + ' / ' + total + '</h2>';
+    html += '<div class="progress-track"><div class="progress-fill" style="width:' + progressPct + '%;"></div></div>';
+
+    html += '<div class="card">';
+    html += '<p class="question-text">Q' + questionNum + '. ' + escapeHtml(sq.question) + '</p>';
+    html += '<div class="choice-list" role="group" aria-label="選択肢">' + choiceListHtml(sq, rec.answered ? rec : null) + '</div>';
+    html += ambiguousButtonHtml(rec.answered ? rec : null);
+
+    if (rec.answered) {
+      html += '<p class="feedback-msg">次の問題へ自動的に進みます…</p>';
+      html += '<button type="button" class="btn-secondary" id="next-btn">次へ ▶</button>';
+    }
+    html += '</div>';
+
+    app.innerHTML = html;
+
+    if (!rec.answered) {
+      app.querySelectorAll(".choice-list .choice-btn").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          handleChoice(parseInt(btn.getAttribute("data-idx"), 10));
+        });
+      });
+      const ambBtn = document.getElementById("ambiguous-btn");
+      if (ambBtn) ambBtn.addEventListener("click", handleAmbiguous);
+    } else {
+      const nextBtn = document.getElementById("next-btn");
+      if (nextBtn) nextBtn.addEventListener("click", advanceAfterFeedback);
+    }
+  }
+
+  /* ---------- Render: Result screen ---------- */
+
+  function renderResult() {
+    const total = TOTAL_QUESTIONS;
+    let sum = 0;
+    state.records.forEach(function (r) {
+      if (typeof r.score === "number") sum += r.score;
+    });
+    const ratePct = Math.round((sum / total) * 1000) / 10;
+    const wrongList = state.records.filter(function (r) { return typeof r.score === "number" && r.score < 1; });
+
+    let rows = "";
+    state.records.forEach(function (rec, i) {
+      let resultLabel;
+      if (!rec.answered && rec.mode === "timeout") {
+        resultLabel = "(未回答)";
+      } else if (rec.score === 1) {
+        resultLabel = "✓ 正解";
+      } else if (rec.score === 0.5) {
+        resultLabel = "△ 一部正解";
+      } else {
+        resultLabel = "✗ 不正解";
+      }
+      rows += "<tr>";
+      rows += '<td class="col-no">' + (i + 1) + "</td>";
+      rows += "<td>" + escapeHtml(truncate(rec.question, 40)) + "</td>";
+      rows += '<td class="col-result">' + resultLabel + "</td>";
+      rows += "</tr>";
+    });
+
+    const dateStr = formatDate(state.quizStartDate || new Date());
+
+    let html = "";
+    html += '<div class="card result-summary">';
+    html += "<h1>研修クイズ 結果レポート</h1>";
+    html += "<p><strong>受験者名:</strong> " + escapeHtml(state.name) + "</p>";
+    html += "<p><strong>実施日:</strong> " + dateStr + "</p>";
+    if (state.timedOut) {
+      html += '<p class="subtext">⏱ 制限時間（8分）に達したため終了しました。</p>';
+    }
+    html += '<div class="result-score">獲得点 ' + sum.toFixed(1) + " / " + total.toFixed(1) + "点</div>";
+    html += '<div class="result-rate">正答率 ' + ratePct.toFixed(1) + "%</div>";
+    html += "</div>";
+
+    html += '<div class="card">';
+    html += "<h2>回答内訳</h2>";
+    html += '<table class="result-table">';
+    html += '<thead><tr><th class="col-no">No</th><th>問題文</th><th class="col-result">採点結果</th></tr></thead>';
+    html += "<tbody>" + rows + "</tbody>";
+    html += "</table>";
+    html += "</div>";
+
+    html += '<div class="next-time">📢 次回予告: 次回はHADO、リトプラ、ARゴジラから出題します！</div>';
+
+    html += '<div class="card no-print">';
+    if (wrongList.length > 0) {
+      html += '<button type="button" class="review-cta-btn" id="review-btn">📖 間違えた問題を復習する</button>';
+    } else {
+      html += '<div class="congrats-msg">🎉 全問正解でした！復習の必要はありません</div>';
+    }
+    html += '<button type="button" class="print-btn" id="print-btn">🖨 印刷する</button>';
+    html += "</div>";
+
+    app.innerHTML = html;
+
+    const printBtn = document.getElementById("print-btn");
+    if (printBtn) printBtn.addEventListener("click", handlePrint);
+    const reviewBtn = document.getElementById("review-btn");
+    if (reviewBtn) {
+      reviewBtn.addEventListener("click", function () {
+        state.screen = "review";
+        render();
+      });
+    }
+  }
+
+  /* ---------- Render: Review (mistake list) screen ---------- */
+
+  function reviewWrongRecords() {
+    return state.records.filter(function (r) { return typeof r.score === "number" && r.score < 1; });
+  }
+
+  function renderReview() {
+    const total = TOTAL_QUESTIONS;
+    const wrongList = reviewWrongRecords();
+
+    let html = "";
+    html += '<button type="button" class="link-btn no-print" id="back-to-result-btn">← 結果画面に戻る</button>';
+    html += "<h1>復習: 間違えた問題（" + wrongList.length + "問 / 全" + total + "問）</h1>";
+
+    wrongList.forEach(function (rec) {
+      const qNum = rec.index + 1;
+      let statusLabel;
+      if (rec.mode === "timeout") statusLabel = "(未回答)";
+      else if (rec.mode === "ambiguous") statusLabel = "△ 一部正解 0.5点";
+      else statusLabel = "✗ 不正解";
+
+      let yourAnswerHtml;
+      if (rec.mode === "ambiguous") {
+        yourAnswerHtml = "△ 曖昧・一部正解として記録";
+      } else if (rec.mode === "timeout") {
+        yourAnswerHtml = "(未回答)";
+      } else {
+        yourAnswerHtml = '<span class="wrong-inline">' + CHOICE_LABELS[rec.selectedIndex] + "　" + escapeHtml(rec.choices[rec.selectedIndex]) + "</span>";
+      }
+      const correctHtml = '<span class="correct-inline">✓ ' + CHOICE_LABELS[rec.correctIndex] + "　" + escapeHtml(rec.choices[rec.correctIndex]) + "</span>";
+
+      html += '<div class="card review-item">';
+      html += "<h3>Q" + qNum + ". <span class=\"review-status\">(" + statusLabel + ")</span></h3>";
+      html += '<p>' + escapeHtml(rec.question) + "</p>";
+      html += '<div class="review-line"><span class="label">あなたの回答:</span>' + yourAnswerHtml + "</div>";
+      html += '<div class="review-line"><span class="label">正解:</span>' + correctHtml + "</div>";
+      html += "</div>";
+    });
+
+    html += '<div class="card no-print">';
+    html += '<button type="button" class="review-cta-btn" id="retry-btn">🔁 間違えた問題だけ再挑戦</button>';
+    html += "</div>";
+
+    app.innerHTML = html;
+
+    document.getElementById("back-to-result-btn").addEventListener("click", function () {
+      state.screen = "result";
+      render();
+    });
+    document.getElementById("retry-btn").addEventListener("click", function () {
+      startReviewRetry(wrongList);
+    });
+  }
+
+  /* ---------- Review retry (separate session, does not affect main records) ---------- */
+
+  function startReviewRetry(wrongList) {
+    state.reviewQueue = wrongList.map(function (rec) {
+      return {
+        question: rec.question,
+        choices: rec.choices,
+        correctIndex: rec.correctIndex,
+        ambiguousScore: 0.5
+      };
+    });
+    state.reviewIndex = 0;
+    state.reviewRecords = state.reviewQueue.map(function (sq, i) {
+      return {
+        index: i,
+        question: sq.question,
+        choices: sq.choices,
+        correctIndex: sq.correctIndex,
+        selectedIndex: null,
+        mode: null,
+        score: null,
+        answered: false
+      };
+    });
+    state.screen = "reviewQuiz";
+    render();
+  }
+
+  function handleReviewChoice(idx) {
+    if (state.screen !== "reviewQuiz") return;
+    ensureAudioContext();
+    const sq = state.reviewQueue[state.reviewIndex];
+    const rec = state.reviewRecords[state.reviewIndex];
+    const isCorrect = idx === sq.correctIndex;
+    rec.selectedIndex = idx;
+    rec.mode = "auto";
+    rec.score = isCorrect ? 1 : 0;
+    rec.answered = true;
+    if (isCorrect) {
+      playCorrectSound();
+      announce("正解");
+    } else {
+      playIncorrectSound();
+      announce("不正解");
+    }
+    state.screen = "reviewFeedback";
+    render();
+    state.feedbackTimeoutId = setTimeout(advanceAfterReviewFeedback, FEEDBACK_WAIT_MS);
+  }
+
+  function handleReviewAmbiguous() {
+    if (state.screen !== "reviewQuiz") return;
+    ensureAudioContext();
+    const sq = state.reviewQueue[state.reviewIndex];
+    const rec = state.reviewRecords[state.reviewIndex];
+    rec.selectedIndex = null;
+    rec.mode = "ambiguous";
+    rec.score = sq.ambiguousScore;
+    rec.answered = true;
+    playAmbiguousSound();
+    announce("一部正解として0.5点を記録しました");
+    state.screen = "reviewFeedback";
+    render();
+    state.feedbackTimeoutId = setTimeout(advanceAfterReviewFeedback, FEEDBACK_WAIT_MS);
+  }
+
+  function advanceAfterReviewFeedback() {
+    if (state.feedbackTimeoutId) {
+      clearTimeout(state.feedbackTimeoutId);
+      state.feedbackTimeoutId = null;
+    }
+    if (state.screen !== "reviewFeedback") return;
+    if (state.reviewIndex + 1 < state.reviewQueue.length) {
+      state.reviewIndex += 1;
+      state.screen = "reviewQuiz";
+      render();
+    } else {
+      state.screen = "reviewResult";
+      render();
+    }
+  }
+
+  function renderReviewQuiz() {
+    const total = state.reviewQueue.length;
+    const sq = state.reviewQueue[state.reviewIndex];
+    const rec = state.reviewRecords[state.reviewIndex];
+    const qNum = state.reviewIndex + 1;
+    const answeredSoFar = state.reviewRecords.filter(function (r) { return r.answered; }).length;
+    const progressPct = Math.round((answeredSoFar / total) * 100);
+
+    let html = "";
+    html += '<div class="quiz-header review-mode">';
+    html += '<div class="review-label">復習モード（' + total + "問中" + qNum + "問目）</div>";
+    html += "</div>";
+
+    html += '<h2 class="question-number">復習問題 ' + qNum + " / " + total + "</h2>";
+    html += '<div class="progress-track"><div class="progress-fill" style="width:' + progressPct + '%;"></div></div>';
+
+    html += '<div class="card">';
+    html += '<p class="question-text">' + escapeHtml(sq.question) + "</p>";
+    html += '<div class="choice-list" role="group" aria-label="選択肢">' + choiceListHtml(sq, rec.answered ? rec : null) + "</div>";
+    html += ambiguousButtonHtml(rec.answered ? rec : null);
+
+    if (rec.answered) {
+      html += '<p class="feedback-msg">次の問題へ自動的に進みます…</p>';
+      html += '<button type="button" class="btn-secondary" id="review-next-btn">次へ ▶</button>';
+    }
+    html += "</div>";
+
+    app.innerHTML = html;
+
+    if (!rec.answered) {
+      app.querySelectorAll(".choice-list .choice-btn").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          handleReviewChoice(parseInt(btn.getAttribute("data-idx"), 10));
+        });
+      });
+      const ambBtn = document.getElementById("ambiguous-btn");
+      if (ambBtn) ambBtn.addEventListener("click", handleReviewAmbiguous);
+    } else {
+      const nextBtn = document.getElementById("review-next-btn");
+      if (nextBtn) nextBtn.addEventListener("click", advanceAfterReviewFeedback);
+    }
+  }
+
+  function renderReviewResult() {
+    const total = state.reviewRecords.length;
+    let correctCount = 0;
+    let partialCount = 0;
+    let wrongCount = 0;
+    let sum = 0;
+    state.reviewRecords.forEach(function (r) {
+      sum += r.score;
+      if (r.score === 1) correctCount++;
+      else if (r.score === 0.5) partialCount++;
+      else wrongCount++;
+    });
+
+    let html = "";
+    html += '<div class="card result-summary">';
+    html += "<h1>復習セッション終了</h1>";
+    html += "<p>" + total + "問中 " + correctCount + "問正解</p>";
+    html += '<div class="result-rate">正解 ' + correctCount + " ／ 一部正解 " + partialCount + " ／ 不正解 " + wrongCount + "（合計 " + sum.toFixed(1) + "点）</div>";
+    html += '<p class="subtext">この結果はHR記録用の本スコアには反映されません。</p>';
+    html += "</div>";
+
+    html += '<div class="card no-print">';
+    html += '<button type="button" class="btn-primary" id="back-to-result-btn2">結果画面に戻る</button>';
+    html += "</div>";
+
+    app.innerHTML = html;
+    document.getElementById("back-to-result-btn2").addEventListener("click", function () {
+      state.screen = "result";
+      render();
+    });
+  }
+
+  /* ---------- Main render dispatch ---------- */
+
+  function render() {
+    if (state.screen === "start") {
+      renderStart();
+    } else if (state.screen === "quiz" || state.screen === "feedback") {
+      renderQuizMain();
+    } else if (state.screen === "result") {
+      renderResult();
+    } else if (state.screen === "review") {
+      renderReview();
+    } else if (state.screen === "reviewQuiz" || state.screen === "reviewFeedback") {
+      renderReviewQuiz();
+    } else if (state.screen === "reviewResult") {
+      renderReviewResult();
+    }
+  }
+
+  initTheme();
+  document.getElementById("theme-toggle").addEventListener("click", toggleTheme);
+  render();
+})();
+</script>
+</body>
+</html>
